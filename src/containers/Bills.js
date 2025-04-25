@@ -38,6 +38,8 @@ export default class {
             try {
               return {
                 ...doc,
+                // Adds a new property called rawDate to the object, which is the original date value from doc
+                rawDate:doc.date,
                 date: formatDate(doc.date),
                 status: formatStatus(doc.status)
               }

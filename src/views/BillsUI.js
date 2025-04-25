@@ -17,10 +17,18 @@ const row = (bill) => {
       </td>
     </tr>
     `)
-  }
+}
 
 const rows = (data) => {
-  return (data && data.length) ? data.map(bill => row(bill)).join("") : ""
+  return data && data.length
+    ? data
+        // Sorts the array in descending order by the rawDate property
+        .sort((a, b) => (new Date(a.rawDate) < new Date(b.rawDate) ? 1 : -1))
+        // Converts each sorted bill to HTML row string using row(bill)
+        .map((bill) => row(bill))
+        // Combines all row strings into single HTML string
+        .join("")
+    : "";
 }
 
 export default ({ data: bills, loading, error }) => {
