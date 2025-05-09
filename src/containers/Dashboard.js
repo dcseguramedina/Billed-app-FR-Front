@@ -145,7 +145,10 @@ export default class {
       this.counter ++
     }
 
-    bills.forEach(bill => {
+    // Filters the bills using the filteredBills function, based on the status for the current group (getStatus(this.index))
+    let currentFilteredBills = filteredBills(bills, getStatus(this.index));
+    // Attach click handlers to each Bill (currentFilteredBills) so that when the bill is clicked, it calls handleEditTicket to open it for editing
+    currentFilteredBills.forEach((bill) => {
       $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
     })
 
