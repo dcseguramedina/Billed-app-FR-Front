@@ -20,6 +20,17 @@ export default class NewBill {
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
     const filePath = e.target.value.split(/\\/g)
     const fileName = filePath[filePath.length-1]
+    // Check file extension
+    const fileExtension = fileName.split('.').pop().toLowerCase()
+    const allowedExtensions = ['jpg', 'jpeg', 'png']
+    // If no valid
+    if (!allowedExtensions.includes(fileExtension)) {
+      // Clear the file input
+      e.target.value = ''
+      // Show an alert message to the user
+      alert(`Type de fichier non valide. Veuillez télécharger un fichier jpg, jpeg ou png`)
+      return
+    }
     const formData = new FormData()
     const email = JSON.parse(localStorage.getItem("user")).email
     formData.append('file', file)
