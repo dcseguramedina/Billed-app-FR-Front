@@ -1,17 +1,16 @@
 /**
  * @jest-environment jsdom
- * Tells Jest to use a browser-like environment for DOM testing
  */
 
-import { screen, waitFor } from "@testing-library/dom" // Tools for querying and waiting for DOM elements
-import userEvent from '@testing-library/user-event' // Simulates user interactions (clicks, typing)
-import BillsUI from "../views/BillsUI.js" // UI rendering function for bills
-import Bills from "../containers/Bills.js" // Bills container logic
-import { formatDate, formatStatus } from "../app/format.js"; // Functions for formatting dates and statuses
-import { ROUTES_PATH } from "../constants/routes.js"; // App route constants
-import { localStorageMock } from "../__mocks__/localStorage.js"; // Mocked localStorage for testing
-import mockStore from "../__mocks__/store" // Mocked data store for testing
-import router from "../app/Router.js"; // App router
+import { screen, waitFor } from "@testing-library/dom"
+import userEvent from '@testing-library/user-event'
+import BillsUI from "../views/BillsUI.js"
+import Bills from "../containers/Bills.js"
+import { formatDate, formatStatus } from "../app/format.js";
+import { ROUTES_PATH } from "../constants/routes.js";
+import { localStorageMock } from "../__mocks__/localStorage.js";
+import mockStore from "../__mocks__/store"
+import router from "../app/Router.js";
 
 // Mock the store and formatting functions for isolation in tests
 jest.mock("../app/Store.js", () => mockStore)
@@ -156,7 +155,7 @@ describe("Given I am connected as an employee", () => {
       expect(formattedDates.childElementCount).toBe(bills.length)
     })
 
-    // Test: handle formatting errors gracefully
+    // Test: the UI should displays all the bills even if there is an error when formatting the date
     test('It should handle formatting errors', async () => {
       const bills = await mockStore.bills().list()
       // Mock formatDate to throw an error
@@ -164,8 +163,84 @@ describe("Given I am connected as an employee", () => {
       formatStatus.mockImplementation((status) => `formatted ${status}`)
       document.body.innerHTML = BillsUI({ data: bills })
       const formattedStatuses = screen.getByTestId("tbody")
-      // Should still render all bills even if date formatting fails
+      // Should have one child per bill (each row)
       expect(formattedStatuses.childElementCount).toBe(bills.length)
     });
   });
+})
+
+// Integration test for GET requests on Bills
+describe("Given I am connected as Employee", () => {
+  // Context: when an employee navigates to the Bills page
+  describe("When I navigate to Bills", () => {
+    // Before each test, set up the environment
+    beforeEach(() => {
+      // Spy on the bills method of the mock store (to track calls)
+      jest.spyOn(mockStore, "bills")
+      // Mock localStorage to simulate an employee user
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      window.localStorage.setItem('user', JSON.stringify({ type: 'Employee', email: "e@a" }))
+      // Create and append the root element for rendering
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.appendChild(root)
+      // Initialize the router (sets up navigation)
+      router()
+    })
+
+    // Test: Bills are fetched from the mock API (GET)
+    test("Then bilss are fetched from mock API GET", async () => {
+      // Navigate to the Bills page
+      window.onNavigate(ROUTES_PATH.Bills)
+      // Wait for the page title to appear
+      await waitFor(() => screen.getByText("Mes notes de frais"))
+      // Get the table body containing bills
+      const listOfBills = await screen.getByTestId("tbody")
+      // Assert that the bills table is rendered
+      expect(listOfBills).toBeTruthy()
+    })
+
+    // Context: When an error occurs during the API call
+    describe("When an error occurs on API", () => {
+      // Test: API fails with a 404 error
+      test("fetches bills from an API and fails with 404 message error", async () => {
+        // Mock the bills API to reject with a 404 error
+        mockStore.bills.mockImplementationOnce(() => {
+          return {
+            list: () => {
+              return Promise.reject(new Error("Erreur 404"))
+            }
+          }
+        })
+        // Navigate to Bills page
+        window.onNavigate(ROUTES_PATH.Bills)
+        // Wait for the promise to reject
+        await new Promise(process.nextTick)
+        // Look for the error message in the DOM
+        const message = screen.getByText(/Erreur 404/)
+        // Assert that the error message is displayed
+        expect(message).toBeTruthy()
+      })
+
+      // Test: API fails with a 500 error
+      test("fetches messages from an API and fails with 500 message error", async () => {
+        // Mock the bills API to reject with a 500 error
+        mockStore.bills.mockImplementationOnce(() => {
+          return {
+            list: () => {
+              return Promise.reject(new Error("Erreur 500"))
+            }
+          }
+        })
+        // Navigate to Bills page
+        window.onNavigate(ROUTES_PATH.Bills)
+        // Wait for the promise to reject
+        await new Promise(process.nextTick)
+        // Look for the error message in the DOM
+        const message = screen.getByText(/Erreur 500/)
+        // Assert that the error message is displayed
+        expect(message).toBeTruthy()
+      })
+    })
+  })
 })
