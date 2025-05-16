@@ -23,7 +23,7 @@ const rows = (data) => {
   return data && data.length
     ? data
         // Sorts the array in descending order by the rawDate property
-        .sort((a, b) => (new Date(a.rawDate) < new Date(b.rawDate) ? 1 : -1))
+          .sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate))
         // Converts each sorted bill to HTML row string using row(bill)
         .map((bill) => row(bill))
         // Combines all row strings into single HTML string
@@ -34,7 +34,7 @@ const rows = (data) => {
 export default ({ data: bills, loading, error }) => {
   
   const modal = () => (`
-    <div class="modal fade" id="modaleFile" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal fade" id="modaleFile" data-testid="modaleFile" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -84,5 +84,5 @@ export default ({ data: bills, loading, error }) => {
       </div>
       ${modal()}
     </div>`
-  )
+    )
 }

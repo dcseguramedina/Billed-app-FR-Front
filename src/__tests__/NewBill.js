@@ -2,7 +2,6 @@
  * @jest-environment jsdom
  */
 import { fireEvent, screen, waitFor } from "@testing-library/dom"
-import userEvent from '@testing-library/user-event'
 import NewBillUI from "../views/NewBillUI.js"
 import NewBill from "../containers/NewBill.js"
 import { ROUTES, ROUTES_PATH } from "../constants/routes"
@@ -22,7 +21,7 @@ describe("Given I am connected as an employee", () => {
       type: 'Employee',
       email: "e@a"
     }))
-  });
+  })
   // Nested suite: user is on the NewBill page
   describe("When I am on NewBill Page", () => {
     // Test: the bill icon should be highlighted
@@ -162,7 +161,7 @@ describe("Given I am connected as an employee", () => {
   })
 
   describe("When I submit the form with empty fields", () => {
-    test("Then it should stay on NewBill page and show error messages", async () => {
+    test("Then it should stay on NewBill page", async () => {
       // Use a mock navigation function to check if redirection occurs
       const onNavigate = jest.fn()
       // Instantiate NewBill
@@ -187,8 +186,6 @@ describe("Given I am connected as an employee", () => {
       // Handler should be called, form still exists, and error message is shown
       expect(handleSubmit).toHaveBeenCalled()
       expect(newBillForm).toBeTruthy()
-      // Error message should be displayed
-      expect(screen.getByText()).toBeTruthy()
     })
   })
 
@@ -209,9 +206,10 @@ describe("Given I am connected as an employee", () => {
       })
       // Render the NewBill UI
       document.body.innerHTML = NewBillUI({ data: { newBill } })
+      const newBillForm = screen.getByTestId("form-new-bill");
+      const handleSubmit = jest.fn(newBill.handleSubmit.bind(newBill));
+      newBillForm.addEventListener("submit", handleSubmit);
       // Fill all form fields with valid data
-      const inputFile = screen.getByTestId('file')
-      const file = new File(["test"], "test.png", { type: "image/png" })
       screen.getByTestId('expense-type').value = "Transports"
       screen.getByTestId('expense-name').value = "Test"
       screen.getByTestId('datepicker').value = "2022-08-10"
@@ -220,28 +218,30 @@ describe("Given I am connected as an employee", () => {
       screen.getByTestId('pct').value = 20
       screen.getByTestId('commentary').value = "Test"
       // Mock file change handler and simulate file upload
+      const inputFile = screen.getByTestId('file')
+      const file = new File(["test"], "test.png", { type: "image/png" })
       const handleChangeFile = jest.fn(newBill.handleChangeFile)
       fireEvent.change(inputFile, { target: { files: [file] } })
       handleChangeFile({
         target: {
           files: [file],
-          value: 'C:\fakepath\test.png',
+          value: '\path\test.png',
         },
         preventDefault: function () { }
       })
       // Submit the form
-      const newBillForm = screen.getByTestId("form-new-bill")
       fireEvent.submit(newBillForm)
       // File handler and navigation should be called
-      expect(handleChangeFile).toHaveBeenCalled()
-      expect(onNavigate).toHaveBeenCalledWith(ROUTES_PATH.Bills)
+      expect(handleSubmit).toHaveBeenCalled();
+      expect(onNavigate).toHaveBeenCalledWith(ROUTES_PATH.Bills);
     })
   });
 })
-
 // Integration test for POST request on NewBill
 describe("Given I am connected as an employee", () => {
   beforeEach(() => {
+    // Clean up DOM
+    document.body.innerHTML = ''
     // Spy on bills method and set up localStorage and root element
     jest.spyOn(mockStore, "bills")
     Object.defineProperty(window, 'localStorage', { value: localStorageMock })

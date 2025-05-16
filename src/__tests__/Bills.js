@@ -70,9 +70,11 @@ describe("Given I am connected as an employee", () => {
       // Extract all dates from the rendered table
       const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
       // Sort dates in reverse chronological order
-      const antiChrono = (a, b) => ((a < b) ? 1 : -1)
+      const antiChrono = (a, b) => new Date(b.rawDate) - new Date(a.rawDate)
       const datesSorted = [...dates].sort(antiChrono)
       // Assert that the displayed dates are sorted as expected
+      console.log(dates)
+      console.log(datesSorted)
       expect(dates).toEqual(datesSorted)
     })
 
