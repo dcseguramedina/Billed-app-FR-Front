@@ -73,8 +73,6 @@ describe("Given I am connected as an employee", () => {
       const antiChrono = (a, b) => new Date(b.rawDate) - new Date(a.rawDate)
       const datesSorted = [...dates].sort(antiChrono)
       // Assert that the displayed dates are sorted as expected
-      console.log(dates)
-      console.log(datesSorted)
       expect(dates).toEqual(datesSorted)
     })
 
@@ -177,6 +175,8 @@ describe("Given I am connected as Employee", () => {
   describe("When I navigate to Bills", () => {
     // Before each test, set up the environment
     beforeEach(() => {
+      // Clean up DOM
+      document.body.innerHTML = ''
       // Spy on the bills method of the mock store (to track calls)
       jest.spyOn(mockStore, "bills")
       // Mock localStorage to simulate an employee user
@@ -197,7 +197,7 @@ describe("Given I am connected as Employee", () => {
       // Wait for the page title to appear
       await waitFor(() => screen.getByText("Mes notes de frais"))
       // Get the table body containing bills
-      const listOfBills = await screen.getByTestId("tbody")
+      const listOfBills = screen.getByTestId("tbody")
       // Assert that the bills table is rendered
       expect(listOfBills).toBeTruthy()
     })

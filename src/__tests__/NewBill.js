@@ -280,7 +280,12 @@ describe("Given I am connected as an employee", () => {
       // Submit handler and bills API should be called, and page is updated
       expect(handleSubmit).toHaveBeenCalled()
       expect(mockStore.bills).toHaveBeenCalled()
-      await waitFor(() => expect(screen.getByText("Mes notes de frais")).toBeTruthy())
+      // Wait for the page title to appear
+      await waitFor(() => screen.getByText("Mes notes de frais"))
+      // Get the table body containing bills
+      const listOfBills = screen.getByTestId("tbody")
+      // Assert that the bills table is rendered
+      expect(listOfBills).toBeTruthy()
     })
 
     describe("When an error occurs on API", () => {
